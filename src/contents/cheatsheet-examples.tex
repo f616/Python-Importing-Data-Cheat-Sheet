@@ -1,0 +1,275 @@
+%-----------------------------------------------------
+\begin{alerttextbox}{Introductory Note}
+This document is an adaption of the original datacamp.org cheat sheet.\\
+\begin{itemize}
+    \item {https://www.datacamp.com/resources/cheat-sheets/importing-data-python-cheat-sheet}
+    \item {https://github.com/f616/Python-Importing-Data-Cheat-Sheet}
+\end{itemize}
+
+\end{alerttextbox}
+
+
+%-----------------------------------------------------
+\section{Importing Data in Python}
+
+\begin{myblock}{}
+\textbf{Most of the time, you’ll use either NumPy or pandas to import your data:}
+\begin{codebox}{python}{}
+import pandas as pd
+\end{codebox}
+\end{myblock}
+
+
+%--------------------------------------------------------------
+\section{Help}
+
+\begin{codebox}{python}{}
+np.info(np.ndarray.dtype)
+help(pd.read_csv)
+\end{codebox}
+
+
+%--------------------------------------------------------------
+\section{Text Files}
+
+\begin{myblock}{Plain Text Files}
+\begin{codebox}{python}{}
+filename = 'huck_finn.txt'
+file = open(filename, mode='r')  #Open the file for reading
+text = file.read()  #Read a file’s contents
+print(file.closed)  #Check whether file is closed
+file.close()  #Close file
+print(text)
+\end{codebox}
+\textbf{Using the context manager with}
+\begin{codebox}{python}{}
+with open ('huck_finn.txt', 'r') as file:
+    print(file.readline())  #Read a single line
+    print(file.readline())
+    print(file.readline())
+\end{codebox}
+\end{myblock}
+
+\begin{myblock}{Table Data: Flat Files}
+\begin{myblock}{Importing Flat Files with NumPy}
+\begin{codebox}{python}{}
+filename = 'huck_finn.txt'
+file = open(filename, mode='r')  #Open the file for reading
+text = file.read()  #Read a file’s contents
+print(file.closed)  #Check whether file is closed
+file.close()  #Close file
+print(text)
+\end{codebox}
+\textbf{Files with one data type}
+\begin{codebox}{python}{}
+filename = 'mnist.txt'
+data = np.loadtxt(filename, \
+    delimiter=',', \  #String used to separate values
+    skiprows=2, \  #Skip the first 2 lines
+    usecols=[0,2], \  #Read the 1st and 3rd column
+    dtype=str)  #The type of the resulting array
+\end{codebox}
+\textbf{Files with mixed data type}
+\begin{codebox}{python}{}
+filename = 'titanic.csv'
+data = np.genfromtxt(filename, \
+    delimiter=',', \
+    names=True, \  #Look for column header
+    dtype=None)
+data_array = np.recfromcsv(filename)
+#The default dtype of the np.recfromcsv() function is None
+\end{codebox}
+\end{myblock}
+\begin{myblock}{Importing Flat Files with Pandas}
+\begin{codebox}{python}{}
+filename = 'winequality-red.csv'
+data = pd.read_csv(filename, \
+    nrows=5, \  #Number of rows of file to read
+    header=None, \  #Row number to use as col names
+    sep='\t', \  #Delimiter to use
+    comment='#', \  #Character to split comments
+    na_values=[""])  #String to recognize as NA/NaN
+\end{codebox}
+\end{myblock}
+\end{myblock}
+
+
+%--------------------------------------------------------------
+\section{Exploring Your Data}
+
+\begin{codebox}{python}{NumPy Arrays}
+data_array.dtype  #Data type of array elements
+data_array.shape  #Array dimensions
+len(data_array)  #Length of array
+\end{codebox}
+
+\begin{codebox}{python}{Pandas DataFrames}
+df.head()  #Return first DataFrame rows
+df.tail()  #Return last DataFrame rows
+df.index  #Describe index
+df.columns  #Describe DataFrame columns
+df.info()  #Info on DataFrame
+data_array = data.values  #Convert a DataFrame to an a NumPy array
+\end{codebox}
+
+%--------------------------------------------------------------
+\section{SAS File}
+
+\begin{codebox}{python}{}
+from sas7bdat import SAS7BDAT
+with SAS7BDAT('urbanpop.sas7bdat') as file:
+    df_sas = file.to_data_frame()
+\end{codebox}
+
+
+%--------------------------------------------------------------
+\section{Stata File}
+
+\begin{codebox}{python}{}
+data = pd.read_stata('urbanpop.dta')
+\end{codebox}
+
+
+%--------------------------------------------------------------
+\section{Excel Spreadsheets}
+
+\begin{myblock}{}
+\begin{codebox}{python}{}
+file = 'urbanpop.xlsx'
+data = pd.ExcelFile(file)
+df_sheet2 = data.parse('1960-1966', \
+                    skiprows=[0], \
+                    names=['Country', \
+                    'AAM: War(2002)'])
+df_sheet1 = data.parse(0, \
+                    parse_cols=[0], \
+                    skiprows=[0], \
+                    names=['Country'])
+\end{codebox}
+\textbf{To access the sheet names{,} use the }sheet\_names \textbf{ attribute:}
+\begin{codebox}{python}{}
+data.sheet_names
+\end{codebox}
+\end{myblock}
+
+%--------------------------------------------------------------
+\section{Relational Databases}
+
+\begin{myblock}{}
+\begin{myblock}{}
+\begin{codebox}{python}{}
+from sqlalchemy import create_engine
+engine = create_engine('sqlite://Northwind.sqlite')
+\end{codebox}
+\textbf{Use the }table\_names() \textbf{ method to fetch a list of table names:}
+\begin{codebox}{python}{}
+table_names = engine.table_names()
+\end{codebox}
+\end{myblock}
+
+\begin{myblock}{Querying Relational Databases}
+\begin{codebox}{python}{}
+con = engine.connect()
+rs = con.execute("SELECT * FROM Orders")
+df = pd.DataFrame(rs.fetchall())
+df.columns = rs.keys()
+con.close()
+\end{codebox}
+\textbf{Using the context manager with}
+\begin{codebox}{python}{}
+with engine.connect() as con:
+    rs = con.execute("SELECT OrderID FROM Orders")
+    df = pd.DataFrame(rs.fetchmany(size=5))
+    df.columns = rs.keys()
+\end{codebox}
+\end{myblock}
+
+\begin{myblock}{Querying Relational Databases with Pandas}
+\begin{codebox}{python}{}
+df = pd.read_sql_query("SELECT * FROM Orders", engine)
+\end{codebox}
+\end{myblock}
+\end{myblock}
+
+
+%--------------------------------------------------------------
+\section{Pickled Files}
+
+\begin{codebox}{python}{}
+import pickle
+with open('pickled_fruit.pkl', 'rb') as file:
+    pickled_data = pickle.load(file)
+\end{codebox}
+
+
+%--------------------------------------------------------------
+\section{Matlab Files}
+
+\begin{codebox}{python}{}
+import scipy.io
+filename = 'workspace.mat'
+mat = scipy.io.loadmat(filename)
+\end{codebox}
+
+
+%--------------------------------------------------------------
+\section{HDF5 Files}
+
+\begin{codebox}{python}{}
+import h5py
+filename = 'H-H1_LOSC_4_v1-815411200-4096.hdf5'
+data = h5py.File(filename, 'r')
+\end{codebox}
+
+
+%--------------------------------------------------------------
+\section{Exploring Dictionaries}
+
+\begin{codebox}{python}{Querying relational databases with pandas}
+print(mat.keys())  #Print dictionary keys
+for key in data.keys():  #Print dictionary keys
+    print(key)
+
+meta
+quality
+strain
+
+pickled_data.values()  #Return dictionary values
+print(mat.items())  #Returns items in list format of (key, value) tuple pairs
+\end{codebox}
+
+\begin{codebox}{python}{Accessing Data Items with Keys}
+for key in data ['meta'].keys():  #Explore the HDF5 structure
+    print(key)
+
+Description
+DescriptionURL
+Detector
+Duration
+GPSstart
+Observatory
+Type
+UTCstart
+
+print(data['meta']['Description'].value)  #Retrieve the value for a key
+\end{codebox}
+
+%--------------------------------------------------------------
+\section{Navigating Your FileSystem}
+
+\begin{codebox}{python}{Magic Commands}
+!ls  #List directory contents of files and directories
+%cd ..  #Change current working directory
+%pwd  #Return the current working directory path
+\end{codebox}
+
+\begin{codebox}{python}{OS Library}
+import os
+path = '/usr/tmp'
+wd = os.getcwd()  #Store the name of current directory in a string
+os.listdir(wd)  #Output contents of the directory in a list
+os.chdir(path)  #Change current working directory
+os.rename('test1.txt', 'test2.txt')  #Rename a file
+os.remove('test1.txt')  #Delete an existing file
+os.mkdir('newdir')  #Create a new directory
+\end{codebox}
